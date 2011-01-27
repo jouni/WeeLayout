@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Class-Path: 
+Implementation-Title: WeeLayout
+Vaadin-Package-Version: 1
+Vaadin-Widgetsets: org.vaadin.weelayout.WeelayoutWidgetset
+Implementation-Version: 0.1
+
