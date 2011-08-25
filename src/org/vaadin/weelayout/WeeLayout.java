@@ -5,8 +5,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
+import com.vaadin.event.LayoutEvents.LayoutClickEvent;
+import com.vaadin.event.LayoutEvents.LayoutClickListener;
+import com.vaadin.event.LayoutEvents.LayoutClickNotifier;
 import com.vaadin.terminal.PaintException;
 import com.vaadin.terminal.PaintTarget;
+import com.vaadin.terminal.gwt.client.EventId;
 import com.vaadin.ui.AbstractLayout;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
@@ -16,13 +20,15 @@ import com.vaadin.ui.Component;
  */
 @SuppressWarnings("serial")
 @com.vaadin.ui.ClientWidget(org.vaadin.weelayout.client.ui.VWeeLayout.class)
-public class WeeLayout extends AbstractLayout {
+public class WeeLayout extends AbstractLayout implements LayoutClickNotifier {
 
     public enum Direction {
         VERTICAL, HORIZONTAL;
     }
 
     private Direction direction;
+
+    private static final String CLICK_EVENT = EventId.LAYOUT_CLICK;
 
     /**
      * Custom layout slots containing the components.
@@ -51,9 +57,9 @@ public class WeeLayout extends AbstractLayout {
      * Create a new layout. The direction of the child components must be
      * specified. The direction can only be set once.
      * 
-     * @param direction The direction in which the child components will flow,
-     *            either {@link Direction}.VERTICAL or {@link Direction}
-     *            .HORIZONTAL
+     * @param direction
+     *            The direction in which the child components will flow, either
+     *            {@link Direction}.VERTICAL or {@link Direction} .HORIZONTAL
      */
     public WeeLayout(Direction direction) {
         this.direction = direction;
@@ -63,7 +69,8 @@ public class WeeLayout extends AbstractLayout {
      * Add a component into this container. The component is added after the
      * previous component.
      * 
-     * @param c the component to be added.
+     * @param c
+     *            the component to be added.
      */
     @Override
     public void addComponent(Component c) {
@@ -81,8 +88,10 @@ public class WeeLayout extends AbstractLayout {
      * Add a component into this container. The component is added after the
      * previous component.
      * 
-     * @param c the component to be added.
-     * @param alignment the alignment for the component.
+     * @param c
+     *            the component to be added.
+     * @param alignment
+     *            the alignment for the component.
      */
     public void addComponent(Component c, Alignment alignment) {
         addComponent(c);
@@ -95,12 +104,16 @@ public class WeeLayout extends AbstractLayout {
      * Add a component into this container. The component is added after the
      * previous component.
      * 
-     * @param c the component to be added.
-     * @param width set the width of the component. Use <code>null</code> to
+     * @param c
+     *            the component to be added.
+     * @param width
+     *            set the width of the component. Use <code>null</code> to leave
+     *            untouched.
+     * @param height
+     *            set the height of the component. Use <code>null</code> to
      *            leave untouched.
-     * @param height set the height of the component. Use <code>null</code> to
-     *            leave untouched.
-     * @param alignment the alignment for the component.
+     * @param alignment
+     *            the alignment for the component.
      */
     public void addComponent(Component c, String width, String height,
             Alignment alignment) {
@@ -119,9 +132,11 @@ public class WeeLayout extends AbstractLayout {
     /**
      * Adds a component into indexed position in this container.
      * 
-     * @param c the component to be added.
-     * @param index the Index of the component position. The components
-     *            currently in and after the position are shifted forwards.
+     * @param c
+     *            the component to be added.
+     * @param index
+     *            the Index of the component position. The components currently
+     *            in and after the position are shifted forwards.
      */
     public void addComponent(Component c, int index) {
         components.add(index, c);
@@ -137,10 +152,13 @@ public class WeeLayout extends AbstractLayout {
     /**
      * Adds a component into indexed position in this container.
      * 
-     * @param c the component to be added.
-     * @param index the Index of the component position. The components
-     *            currently in and after the position are shifted forwards.
-     * @param alignment the alignment for the component.
+     * @param c
+     *            the component to be added.
+     * @param index
+     *            the Index of the component position. The components currently
+     *            in and after the position are shifted forwards.
+     * @param alignment
+     *            the alignment for the component.
      */
     public void addComponent(Component c, int index, Alignment alignment) {
         components.add(index, c);
@@ -158,7 +176,8 @@ public class WeeLayout extends AbstractLayout {
     /**
      * Removes the component from this container.
      * 
-     * @param c the component to be removed.
+     * @param c
+     *            the component to be removed.
      */
     @Override
     public void removeComponent(Component c) {
@@ -197,12 +216,10 @@ public class WeeLayout extends AbstractLayout {
         target.addAttribute("alignments", componentToAlignment);
     }
 
-    @Override
     public Iterator<Component> getComponentIterator() {
         return components.iterator();
     }
 
-    @Override
     public void replaceComponent(Component oldComponent, Component newComponent) {
         // Gets the locations
         int oldLocation = -1;
@@ -283,7 +300,8 @@ public class WeeLayout extends AbstractLayout {
     /**
      * Returns the index of the given component.
      * 
-     * @param component The component to look up.
+     * @param component
+     *            The component to look up.
      * @return The index of the component or -1 if the component is not a child.
      */
     public int getComponentIndex(Component component) {
@@ -293,9 +311,11 @@ public class WeeLayout extends AbstractLayout {
     /**
      * Returns the component at the given position.
      * 
-     * @param index The position of the component.
+     * @param index
+     *            The position of the component.
      * @return The component at the given index.
-     * @throws IndexOutOfBoundsException If the index is out of range.
+     * @throws IndexOutOfBoundsException
+     *             If the index is out of range.
      */
     public Component getComponent(int index) throws IndexOutOfBoundsException {
         return components.get(index);
@@ -315,7 +335,8 @@ public class WeeLayout extends AbstractLayout {
      * components overflowing outside the layout boundaries will be clipped.
      * Otherwise overflowing components are visible.
      * 
-     * @param clip the new clipping value.
+     * @param clip
+     *            the new clipping value.
      */
     public void setClipping(boolean clip) {
         this.clip = clip;
@@ -332,6 +353,15 @@ public class WeeLayout extends AbstractLayout {
      */
     public void setSmartRelativeSizes(boolean smartRelatives) {
         this.smartRelatives = smartRelatives;
+    }
+
+    public void addListener(LayoutClickListener listener) {
+        addListener(CLICK_EVENT, LayoutClickEvent.class, listener,
+                LayoutClickListener.clickMethod);
+    }
+
+    public void removeListener(LayoutClickListener listener) {
+        removeListener(CLICK_EVENT, LayoutClickEvent.class, listener);
     }
 
 }

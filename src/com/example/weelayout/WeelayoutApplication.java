@@ -7,6 +7,7 @@ import com.vaadin.Application;
 import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
@@ -14,7 +15,6 @@ import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.Button.ClickEvent;
 
 @SuppressWarnings("serial")
 public class WeelayoutApplication extends Application {
@@ -23,6 +23,7 @@ public class WeelayoutApplication extends Application {
         Window mainWindow = new Window("Weelayout Application");
         setMainWindow(mainWindow);
         mainWindow.setContent(undefinedWithRelativeSizes());
+        setTheme("test");
     }
 
     boolean core = false;
@@ -75,21 +76,19 @@ public class WeelayoutApplication extends Application {
     }
 
     WeeLayout undefinedWithRelativeSizes() {
-        WeeLayout wl = new WeeLayout(Direction.HORIZONTAL);
-        // wl.setHeight("100%");
+        WeeLayout wl = new WeeLayout(Direction.VERTICAL);
+        wl.setHeight("100%");
         wl.addComponent(new NativeButton("With long caption",
                 new Button.ClickListener() {
-                    @Override
                     public void buttonClick(ClickEvent event) {
-                        event
-                                .getButton()
-                                .setCaption(
-                                        event.getButton().getCaption() == null ? "Long caption"
-                                                : null);
+                        event.getButton().setCaption(
+                                event.getButton().getCaption() == null
+                                        ? "Long caption" : null);
                     }
                 }), "100%", "30px", Alignment.TOP_LEFT);
-        wl.addComponent(new NativeButton("Two"), "100%", "100%",
-                Alignment.TOP_LEFT);
+        NativeButton b = new NativeButton("Two");
+        b.addStyleName("test");
+        wl.addComponent(b, "100%", "100%", Alignment.TOP_LEFT);
         wl.setSmartRelativeSizes(true);
         return wl;
     }
@@ -98,7 +97,6 @@ public class WeelayoutApplication extends Application {
         WeeLayout wl = new WeeLayout(Direction.HORIZONTAL);
         wl.setSizeFull();
         wl.addComponent(new NativeButton("One", new Button.ClickListener() {
-            @Override
             public void buttonClick(ClickEvent event) {
                 event.getButton().setWidth("300px");
             }

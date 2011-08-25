@@ -3,9 +3,14 @@ package org.vaadin.weelayout.client.ui;
 import java.util.ArrayList;
 import java.util.Set;
 
+import org.vaadin.csstools.client.ComputedStyle;
+
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.Overflow;
+import com.google.gwt.event.dom.client.DomEvent.Type;
+import com.google.gwt.event.shared.EventHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.ComplexPanel;
@@ -13,15 +18,39 @@ import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
 import com.vaadin.terminal.gwt.client.ApplicationConnection;
 import com.vaadin.terminal.gwt.client.Container;
+import com.vaadin.terminal.gwt.client.EventId;
 import com.vaadin.terminal.gwt.client.Paintable;
 import com.vaadin.terminal.gwt.client.RenderSpace;
 import com.vaadin.terminal.gwt.client.UIDL;
+import com.vaadin.terminal.gwt.client.Util;
 import com.vaadin.terminal.gwt.client.ValueMap;
+import com.vaadin.terminal.gwt.client.ui.LayoutClickEventHandler;
 
 public class VWeeLayout extends ComplexPanel implements Container {
 
     /** Set the CSS class name to allow styling. */
     public static final String CLASSNAME = "v-weelayout";
+
+    private LayoutClickEventHandler clickEventHandler = new LayoutClickEventHandler(
+            this, EventId.LAYOUT_CLICK) {
+
+        @Override
+        protected <H extends EventHandler> HandlerRegistration registerHandler(
+                H handler, Type<H> type) {
+            return addDomHandler(handler, type);
+        }
+
+        @Override
+        protected Paintable getChildComponent(
+                com.google.gwt.user.client.Element element) {
+            return getComponent(element);
+        }
+    };
+
+    private Paintable getComponent(Element element) {
+        return Util.getChildPaintableForElement(client, VWeeLayout.this,
+                (com.google.gwt.user.client.Element) element.cast());
+    }
 
     /** The client side widget identifier */
     protected String paintableId;
@@ -38,9 +67,20 @@ public class VWeeLayout extends ComplexPanel implements Container {
     /** Should the layout calculate relative sizes inside undefined sized layout */
     private boolean smart = false;
 
+    /** Current margin values */
+    protected int[] margin;
+
+    /** Current border sizes */
+    protected int[] border;
+
+    /** Current padding values */
+    protected int[] padding;
+
     // Current inner size (excluding margins, border and padding) in pixels
     protected int width = -1;
     protected int height = -1;
+
+    private String lastStyleName;
 
     // Is the layout size undefined, i.e. defined by the contained components
     protected boolean undefWidth = false;
@@ -66,9 +106,14 @@ public class VWeeLayout extends ComplexPanel implements Container {
         isRendering = true;
         getElement().getStyle().setOverflow(Overflow.HIDDEN);
 
+        updateExtraSizeInfo();
+
         if (client.updateComponent(this, uidl, true)) {
+            isRendering = false;
             return;
         }
+
+        clickEventHandler.handleEventHandlerRegistration(client);
 
         this.client = client;
         paintableId = uidl.getId();
@@ -85,6 +130,8 @@ public class VWeeLayout extends ComplexPanel implements Container {
         }
 
         updateDynamicSizeInfo(uidl);
+
+        updateActualSize();
 
         // Vertical-align needs one element to base the alignment onto
         // This is done only once, before any components are painted
@@ -124,8 +171,8 @@ public class VWeeLayout extends ComplexPanel implements Container {
                 getChildren().insert(cell, uidlPos);
 
                 // Physical attach
-                DOM.insertChild(getElement(), cell.getElement(),
-                        vertical ? uidlPos * 2 : uidlPos + 1);
+                DOM.insertChild(getElement(), cell.getElement(), vertical
+                        ? uidlPos * 2 : uidlPos + 1);
 
                 // Adopt.
                 adopt(cell);
@@ -159,8 +206,7 @@ public class VWeeLayout extends ComplexPanel implements Container {
             if (smart) {
                 clearComponentSizesInNonParentDirection();
             }
-            width = getElement().getClientWidth();
-            height = getElement().getClientHeight();
+            updateActualSize();
             updateUsedSpace();
             updateRelativeSizedWidgets();
         }
@@ -169,6 +215,19 @@ public class VWeeLayout extends ComplexPanel implements Container {
         if (!clip) {
             getElement().getStyle().clearOverflow();
         }
+    }
+
+    protected void updateExtraSizeInfo() {
+        ComputedStyle cs = new ComputedStyle(getElement());
+        margin = cs.getMargin();
+        border = cs.getBorder();
+        padding = cs.getPadding();
+    }
+
+    public void updateActualSize() {
+        ComputedStyle cs = new ComputedStyle(getElement());
+        width = cs.getIntProperty("width");
+        height = cs.getIntProperty("height");
     }
 
     private int cumulativeSize = 0;
@@ -276,13 +335,19 @@ public class VWeeLayout extends ComplexPanel implements Container {
         }
     }
 
-    @Override
     public RenderSpace getAllocatedSpace(Widget child) {
-        return new RenderSpace(vertical ? width : width - usedSpace,
-                vertical ? height - usedSpace : height);
+        if (child instanceof VWeeLayout) {
+            return new RenderSpace(vertical ? width : width - usedSpace,
+                    vertical ? height - usedSpace : height);
+        }
+        ComputedStyle cs = new ComputedStyle(child.getElement());
+        int[] margin = cs.getMargin();
+        int width = this.width - margin[1] - margin[3];
+        int height = this.height - margin[0] - margin[2];
+        return new RenderSpace(vertical ? width : width - usedSpace, vertical
+                ? height - usedSpace : height);
     }
 
-    @Override
     public boolean hasChildComponent(Widget component) {
         for (Widget w : getChildren()) {
             Cell cell = (Cell) w;
@@ -293,13 +358,11 @@ public class VWeeLayout extends ComplexPanel implements Container {
         return false;
     }
 
-    @Override
     public void replaceChildComponent(Widget oldComponent, Widget newComponent) {
         // TODO Auto-generated method stub
 
     }
 
-    @Override
     public boolean requestLayout(Set<Paintable> children) {
         for (Paintable p : children) {
             Cell cell = getCellForWidget((Widget) p, false);
@@ -321,8 +384,7 @@ public class VWeeLayout extends ComplexPanel implements Container {
         if (smart || ((vertical && !undefHeight) || (!vertical && !undefWidth))) {
             int oldWidth = width;
             int oldHeight = height;
-            width = getElement().getClientWidth();
-            height = getElement().getClientHeight();
+            updateActualSize();
             updateRelativeSizedWidgets();
             return (width == oldWidth && height == oldHeight);
         } else {
@@ -330,7 +392,6 @@ public class VWeeLayout extends ComplexPanel implements Container {
         }
     }
 
-    @Override
     public void updateCaption(Paintable component, UIDL uidl) {
         getCellForWidget((Widget) component, false).updateCaption(uidl);
     }
@@ -345,22 +406,48 @@ public class VWeeLayout extends ComplexPanel implements Container {
     }
 
     @Override
-    public void setWidth(String width) {
-        super.setWidth(width);
-        int oldWidth = this.width;
-        this.width = getElement().getClientWidth();
-        if (oldWidth != this.width && !isRendering) {
+    public void setWidth(String w) {
+        String toBeWidth = "";
+        if (w != null && !"".equals(w)) {
+            // Assume pixel values are always passed from ApplicationConnection
+            int newWidth = ComputedStyle.parseInt(w) - margin[1] - margin[3]
+                    - border[1] - border[3] - padding[1] - padding[3];
+            if (newWidth < 0) {
+                newWidth = 0;
+            }
+            toBeWidth = newWidth + "px";
+            super.setWidth(toBeWidth);
+        } else {
+            super.setWidth("");
+        }
+
+        if (!isRendering) {
+            updateActualSize();
             updateRelativeSizedWidgets();
         }
     }
 
     @Override
-    public void setHeight(String height) {
-        super.setHeight(height);
-        int oldHeight = this.height;
-        this.height = getElement().getClientHeight();
-        if (oldHeight != this.height && !isRendering) {
+    public void setHeight(String h) {
+        String toBeHeight = "";
+
+        if (h != null && !"".equals(h)) {
+            // Assume pixel values are always passed from ApplicationConnection
+            int newHeight = ComputedStyle.parseInt(h) - margin[0] - margin[2]
+                    - border[0] - border[2] - padding[0] - padding[2];
+            if (newHeight < 0) {
+                newHeight = 0;
+            }
+            toBeHeight = newHeight + "px";
+            super.setHeight(toBeHeight);
+        } else {
+            super.setHeight("");
+        }
+
+        if (!isRendering) {
+            updateActualSize();
             updateRelativeSizedWidgets();
+            Util.runWebkitOverflowAutoFix(getElement());
         }
     }
 

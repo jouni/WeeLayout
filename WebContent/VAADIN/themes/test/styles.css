@@ -1,0 +1,11 @@
+@import "../reindeer/styles.css";
+
+.v-weelayout {
+	margin: 5px;
+	border: 1px solid red;
+	padding: 5px;
+	}
+
+.test {
+	margin: 50px;
+	}
