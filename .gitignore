@@ -1,1 +1,13 @@
 /GWT development mode for WeeLayout.launch
+
+/build
+
+/.settings
+
+/deploy
+
+/WebContent/VAADIN/widgetsets
+
+/WebContent/WEB-INF/lib/vaadin*.jar
+
+.DS_Store
