@@ -22,7 +22,7 @@ public class WeelayoutApplication extends Application {
     public void init() {
         Window mainWindow = new Window("Weelayout Application");
         setMainWindow(mainWindow);
-        mainWindow.setContent(undefinedWithRelativeSizes());
+        mainWindow.setContent(splitRecursive(1));
         setTheme("test");
     }
 
@@ -52,7 +52,7 @@ public class WeelayoutApplication extends Application {
         } else {
             WeeLayout wl = (WeeLayout) l;
             wl.setClipping(true);
-            NativeButton b = new NativeButton("One");
+            NativeButton b = new NativeButton("Button");
             b.setSizeFull();
             if (vertical) {
                 b.setHeight("10%");

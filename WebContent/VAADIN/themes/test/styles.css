@@ -1,11 +1,14 @@
 @import "../reindeer/styles.css";
 
 .v-weelayout {
-	margin: 5px;
-	border: 1px solid red;
-	padding: 5px;
+	background: rgba(0,0,0,.1);
+	
 	}
 
 .test {
 	margin: 50px;
 	}
+
+.v-weelayout .v-nativebutton {
+	margin: 5px;
+}
