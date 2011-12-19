@@ -4,6 +4,7 @@ import org.vaadin.weelayout.WeeLayout;
 import org.vaadin.weelayout.WeeLayout.Direction;
 
 import com.vaadin.Application;
+import com.vaadin.terminal.ThemeResource;
 import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -56,16 +57,32 @@ public class WeelayoutApplication extends Application {
             b.setSizeFull();
             if (vertical) {
                 b.setHeight("10%");
+                b.setWidth("50%");
             } else {
                 b.setWidth("10%");
+                b.setHeight("50%");
             }
-            l.addComponent(b);
+            wl.addComponent(b, Alignment.MIDDLE_CENTER);
+            
+            
+            Label label = new Label("Label");
+            label.setCaption("Label caption");
+            label.setSizeFull();
+            label.setIcon(new ThemeResource("../runo/icons/16/document.png"));
+            label.addStyleName("foobar");
+            if (vertical) {
+            	label.setHeight("10%");
+            } else {
+            	label.setWidth("10%");
+            }
+            l.addComponent(label);
+            
             if (deep > 0) {
                 Layout w = splitRecursive(--deep);
                 if (vertical) {
-                    w.setHeight("90%");
+                    w.setHeight("80%");
                 } else {
-                    w.setWidth("90%");
+                    w.setWidth("80%");
                 }
                 l.addComponent(w);
             } else {

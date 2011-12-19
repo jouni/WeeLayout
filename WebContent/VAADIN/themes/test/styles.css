@@ -1,7 +1,11 @@
 @import "../reindeer/styles.css";
 
+.v-weelayout .v-weelayout-cell-caption * {
+	vertical-align: middle;
+	float: none;
+	}
+
 .v-weelayout {
-	background: rgba(0,0,0,.1);
 	
 	}
 
@@ -9,6 +13,9 @@
 	margin: 50px;
 	}
 
-.v-weelayout .v-nativebutton {
+.v-label {
+	background: green;
+	border: 1px solid black;
+	-webkit-box-sizing: border-box;
 	margin: 5px;
-}
+	}

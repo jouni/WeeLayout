@@ -52,4 +52,5 @@
 .v-weelayout-cell-caption {
 	display: block;
 	line-height: 16px; /* TODO just a temporary fix for FF3 sub-pixel calculation problem */
+	padding-bottom: .3em;
 	}
